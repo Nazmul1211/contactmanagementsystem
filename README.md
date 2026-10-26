@@ -2,136 +2,177 @@
 
 A small REST API for managing contacts, built with Bun, Express, Prisma, and PostgreSQL.
 
-## Setup
+## Getting Started
 
-1. Install dependencies:
+### 1. Install Dependencies
 
-   ```bash
-   bun install
-   ```
+```bash
+bun install
+```
 
-2. Add your PostgreSQL connection string to `.env`:
+### 2. Configure Environment
 
-   ```env
-   DATABASE_URL="postgresql://user:password@localhost:5432/contacts"
-   ```
+Ensure your `.env` file contains your PostgreSQL connection string:
 
-3. Apply the database migrations and generate the Prisma client:
+```env
+DATABASE_URL="postgres://user:password@localhost:5432/postgres?sslmode=require"
+PORT=3000
+```
 
-   ```bash
-   bun run db:migrate
-   bun run db:generate
-   ```
+### 3. Generate Prisma Client & Migrate
 
-4. Start the API:
+```bash
+bun run db:generate
+bun run db:migrate
+```
 
-   ```bash
-   bun run dev
-   ```
+### 4. Run the Application
 
-The API runs at `http://localhost:3000` by default. Set `PORT` to change it.
+```bash
+# Development (with hot reloading)
+bun run dev
 
-## Data model
+# Production
+bun run start
+```
 
-Each contact has:
+The API starts on `http://localhost:3000` by default.
 
-| Field       | Type     | Notes                        |
-| ----------- | -------- | ---------------------------- |
-| `id`        | `string` | UUID generated automatically |
-| `name`      | `string` | Required                     |
-| `email`     | `string` | Required, unique             |
-| `phone`     | `string` | Required                     |
-| `createdAt` | `Date`   | Set automatically            |
-| `updatedAt` | `Date`   | Updated automatically        |
+---
 
-## Endpoints
+## Data Model
 
-| Method   | Endpoint            | Description                              |
-| -------- | ------------------- | ---------------------------------------- |
-| `POST`   | `/api/contacts`     | Create a new contact                     |
-| `GET`    | `/api/contacts`     | Retrieve all contacts                    |
-| `GET`    | `/api/contacts/:id` | Retrieve a single contact                |
-| `PUT`    | `/api/contacts/:id` | Update a contact (partial updates allowed) |
-| `PATCH`  | `/api/contacts/:id` | Same as `PUT`                            |
-| `DELETE` | `/api/contacts/:id` | Delete a contact                         |
+Each contact in PostgreSQL (`model ContactList`):
 
-### Create a contact
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `id` | `String` | UUID automatically generated |
+| `name` | `String` | Contact name (required) |
+| `email` | `String` | Contact email (required, unique) |
+| `phone` | `String` | Contact phone number (required) |
+| `createdAt` | `DateTime` | Creation timestamp |
+| `updatedAt` | `DateTime` | Last update timestamp |
+
+---
+
+## API Endpoints
+
+All endpoints are prefixed with `/api/contacts`:
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/contacts` | Create a new contact |
+| `GET` | `/api/contacts` | Retrieve all contacts (ordered by newest first) |
+| `GET` | `/api/contacts/:id` | Retrieve a single contact by ID |
+| `PUT` | `/api/contacts/:id` | Update an existing contact by ID |
+| `DELETE` | `/api/contacts/:id` | Delete a contact by ID |
+
+---
+
+## Example Requests
+
+### 1. Create a Contact
 
 ```bash
 curl -X POST http://localhost:3000/api/contacts \
   -H "Content-Type: application/json" \
-  -d '{"name":"Alice Doe","email":"alice@example.com","phone":"+1 555 0100"}'
+  -d '{
+    "name": "Alice Freeman",
+    "email": "alice.freeman@example.com",
+    "phone": "+1-555-0101"
+  }'
 ```
 
-`201 Created`:
-
+**Response (`201 Created`):**
 ```json
 {
-  "id": "b5398f07-106f-4699-9282-af91d9ee2312",
-  "name": "Alice Doe",
-  "email": "alice@example.com",
-  "phone": "+1 555 0100",
-  "createdAt": "2026-10-26T06:49:26.668Z",
-  "updatedAt": "2026-10-26T06:49:26.668Z"
+  "id": "1fba0a5f-c799-4ca2-8c17-8eb15e03cc50",
+  "name": "Alice Freeman",
+  "email": "alice.freeman@example.com",
+  "phone": "+1-555-0101",
+  "createdAt": "2026-10-26T08:38:05.254Z",
+  "updatedAt": "2026-10-26T08:38:05.254Z"
 }
 ```
 
-### Update a contact
-
-Send only the fields that need to change:
+### 2. Get All Contacts
 
 ```bash
-curl -X PUT http://localhost:3000/api/contacts/<id> \
+curl http://localhost:3000/api/contacts
+```
+
+**Response (`200 OK`):**
+```json
+[
+  {
+    "id": "1fba0a5f-c799-4ca2-8c17-8eb15e03cc50",
+    "name": "Alice Freeman",
+    "email": "alice.freeman@example.com",
+    "phone": "+1-555-0101",
+    "createdAt": "2026-10-26T08:38:05.254Z",
+    "updatedAt": "2026-10-26T08:38:05.254Z"
+  }
+]
+```
+
+### 3. Get Contact by ID
+
+```bash
+curl http://localhost:3000/api/contacts/1fba0a5f-c799-4ca2-8c17-8eb15e03cc50
+```
+
+### 4. Update a Contact
+
+```bash
+curl -X PUT http://localhost:3000/api/contacts/1fba0a5f-c799-4ca2-8c17-8eb15e03cc50 \
   -H "Content-Type: application/json" \
-  -d '{"phone":"+1 555 0199"}'
+  -d '{
+    "name": "Alice Freeman-Smith",
+    "email": "alice.smith@example.com",
+    "phone": "+1-555-9999"
+  }'
 ```
 
-### Delete a contact
+### 5. Delete a Contact
 
 ```bash
-curl -X DELETE http://localhost:3000/api/contacts/<id>
+curl -X DELETE http://localhost:3000/api/contacts/1fba0a5f-c799-4ca2-8c17-8eb15e03cc50
 ```
 
-Returns `204 No Content`.
-
-### Errors
-
-Errors use an `error` field with an appropriate status code:
-
-| Status | Meaning                                                    |
-| ------ | ---------------------------------------------------------- |
-| `400`  | Missing or invalid required fields, or invalid JSON        |
-| `404`  | Contact not found                                          |
-| `409`  | A contact with the same email address already exists       |
-| `500`  | Unexpected server error                                    |
-
-## Connecting a Next.js frontend
-
-The API enables CORS so a Next.js app can call it directly. In the frontend's
-`.env.local`:
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:3000
-```
-
-Then fetch the contacts from a server component:
-
-```tsx
-async function getContacts() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/contacts`, {
-    cache: "no-store",
-  });
-
-  if (!res.ok) throw new Error("Failed to load contacts");
-
-  return res.json();
+**Response (`200 OK`):**
+```json
+{
+  "message": "Contact deleted successfully"
 }
 ```
 
-If both apps need port `3000`, start the API on another port and allow the
-frontend origin:
+---
 
-```bash
-PORT=3001 CORS_ORIGIN=http://localhost:3000 bun run dev
-```
-# contactmanagementsystem
+## Error Handling
+
+Standard JSON error format `{ "error": "description" }`:
+
+| Status Code | Meaning |
+| :--- | :--- |
+| `400 Bad Request` | Missing required fields (`name`, `email`, or `phone`) |
+| `404 Not Found` | Contact with specified ID not found |
+| `409 Conflict` | Contact with this email address already exists |
+| `500 Server Error`| Internal server or database error |
+
+---
+
+## Testing with Postman
+
+A ready-to-use Postman collection is included in the project:
+[`ContactManagementSystem.postman_collection.json`](./ContactManagementSystem.postman_collection.json)
+
+### How to use:
+1. Open **Postman** and click **Import**.
+2. Select `ContactManagementSystem.postman_collection.json`.
+3. Set the `baseUrl` variable (defaults to `http://localhost:3000`).
+4. Execute the requests:
+   - **Create Contact**: Automatically saves the created `contactId` variable.
+   - **Get All Contacts**: Retrieves all records.
+   - **Get Contact by ID**: Uses the saved `contactId`.
+   - **Update Contact**: Updates the saved contact.
+   - **Delete Contact**: Deletes the saved contact.
