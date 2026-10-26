@@ -1,0 +1,45 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  
+}
+
+
+model User { 
+  id    Int     @id @default(autoincrement()) 
+  email String  @unique
+  name  String?
+  phone String?
+  createdAt DateTime
+
+  
+} 
+
+
+// •⁠  ⁠⁠ id ⁠ — Unique identifier
+// •⁠  ⁠⁠ name ⁠ — Contact name (required)
+// •⁠  ⁠⁠ email ⁠ — Email address (required)
+// •⁠  ⁠⁠ phone ⁠ — Phone number (required)
+// •⁠  ⁠⁠ createdAt ⁠ — Creation timestamp
+
+
+
+model ContactList {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  phone     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+

@@ -1,0 +1,30 @@
+{
+  "name": "contactmanagementsystem",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^26.6.5",
+    "@types/pg": "^8.23.1",
+    "prisma": "^7.10.1",
+    "tsx": "^4.23.15"
+  },
+  "scripts": {
+    "start": "bun app.ts",
+    "dev": "bun --hot app.ts",
+    "test": "bun test-crud.ts",
+    "db:generate": "bunx prisma generate",
+    "db:migrate": "bunx prisma migrate deploy"
+  },
+  "peerDependencies": {
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.10.1",
+    "@prisma/client": "7",
+    "dotenv": "^18.0.9",
+    "express": "^5.3.0",
+    "pg": "^8.23.1"
+  }
+}
